@@ -1,6 +1,7 @@
 import { Drawer, List, ListItem, ListItemText, ListItemIcon, Toolbar } from '@mui/material';
 import { PhotoAlbum, Image } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
+import AlbumList from '../album/albumList';
 
 const Sidebar = () => {
   const drawerWidth = 240;

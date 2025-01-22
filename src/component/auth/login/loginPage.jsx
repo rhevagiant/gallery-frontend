@@ -19,7 +19,7 @@ const Login = () => {
     try {
       await login(credentials);
       setIsLoggedIn(true);
-      navigate("/dashboard");
+      navigate("/");
     } catch {
       setError("Invalid username or password.");
     }
@@ -33,7 +33,7 @@ const Login = () => {
       {error && <Typography color='error'>{error}</Typography>}
       <form onSubmit={handleSubmit}>
         <TextField
-          label='Username'
+          label='Email'
           fullWidth
           margin='normal'
           value={credentials.email}
