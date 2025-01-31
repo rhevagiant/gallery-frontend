@@ -1,13 +1,10 @@
 import { Box, Toolbar, Typography, Grid, Paper } from '@mui/material';
-import Sidebar from '../sidebar/sidebar';
+
 
 
 const Dashboard = () => {
   return (
     <Box sx={{ display: 'flex' }}>
-      {/* Sidebar */}
-      <Sidebar />
-
       {/* Main content */}
       <Box
         component="main"
