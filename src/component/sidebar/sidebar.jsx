@@ -12,11 +12,11 @@ const Sidebar = () => {
       sx={{
         width: sidebarWidth,
         flexShrink: 0,
-        bgcolor: bluegray[50], // Set background color to bluegray[50]
+        bgcolor: bluegray[50], 
         height: '100vh',
         display: 'flex',
         flexDirection: 'column',
-        boxShadow: '2px 0 5px rgba(0, 0, 0, 0.1)', // Add shadow to the right side
+        boxShadow: '2px 0 5px rgba(0, 0, 0, 0.1)', 
       }}
     >
       <List>
@@ -29,9 +29,9 @@ const Sidebar = () => {
             to={item.path} 
             key={index} 
             sx={{
-              '&:hover': { bgcolor: bluegray[700], color: '#fff' }, // Hover background color
-              '&:hover .MuiListItemIcon-root': { color: '#fff' },  // Hover icon color
-              '&.Mui-selected': { bgcolor: bluegray[700], color: '#fff' }, // Selected item color
+              '&:hover': { bgcolor: bluegray[700], color: '#fff' }, 
+              '&:hover .MuiListItemIcon-root': { color: '#fff' },  
+              '&.Mui-selected': { bgcolor: bluegray[700], color: '#fff' }, 
             }}
           >
             <ListItemIcon sx={{ color: bluegray[700] }}>
@@ -39,7 +39,7 @@ const Sidebar = () => {
             </ListItemIcon>
             <ListItemText 
               primary={item.text} 
-              sx={{ color: bluegray[700], '&:hover': { color: bluegray[50] } }} // Text color changes to bluegray[50] on hover
+              sx={{ color: bluegray[700], '&:hover': { color: bluegray[50] } }} 
             />
           </ListItem>
         ))}
