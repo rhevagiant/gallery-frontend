@@ -1,9 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardMedia, CardContent, Grid } from '@mui/material';
-import axios from 'axios';
+import { Box, Typography, Card, CardMedia, Grid } from '@mui/material';
+import { getAllPhotos } from '../../store/endpoint/photo/AllPhoto'; // Pastikan path sesuai
 
 const PhotoList = () => {
   const [photos, setPhotos] = useState([]);
+
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        const data = await getAllPhotos();
+        setPhotos(data);
+      } catch (error) {
+        console.error('Error fetching photos:', error);
+      }
+    };
+
+    fetchPhotos();
+  }, []);
 
   return (
     <Box sx={{ padding: 3 }}>
@@ -13,17 +26,19 @@ const PhotoList = () => {
       <Grid container spacing={3}>
         {photos.map((photo) => (
           <Grid item xs={12} sm={6} md={4} key={photo.FotoID}>
-            <Card>
+            <Card
+            sx={{
+              width: 200,
+              height: 200,
+              cursor: 'pointer'
+            }}
+            >
               <CardMedia
                 component="img"
-                height="140"
-                image={photo.LokasiFile} // Adjust with your backend's image URL
+                image={photo.LokasiFile} // Sesuaikan dengan struktur backend
                 alt={photo.JudulFoto}
+                sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
-              <CardContent>
-                <Typography variant="h6">{photo.JudulFoto}</Typography>
-                <Typography color="textSecondary">{photo.DeskripsiFoto}</Typography>
-              </CardContent>
             </Card>
           </Grid>
         ))}
