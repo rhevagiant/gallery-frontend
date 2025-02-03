@@ -12,7 +12,6 @@ const Sidebar = () => {
       sx={{
         width: sidebarWidth,
         flexShrink: 0,
-        bgcolor: bluegray[50], 
         height: '100vh',
         display: 'flex',
         flexDirection: 'column',
