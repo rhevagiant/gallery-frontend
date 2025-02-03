@@ -11,6 +11,7 @@ import { getAlbumByID } from '../../store/endpoint/album/getAllAlbum';
 import { bluegray } from '../../themes/color';
 import { deleteAlbum, updateAlbum } from '../../store/endpoint/album/UDalbum'; // Import API functions
 import { uploadPhoto } from '../../store/endpoint/photo/uploadPhoto'; // Add API function for uploading photos
+import { useDropzone } from 'react-dropzone'; // Import useDropzone hook
 
 const AlbumDetail = () => {
   const { id } = useParams();
@@ -32,6 +33,7 @@ const AlbumDetail = () => {
     JudulFoto: '',
     DeskripsiFoto: '',
     image: null,
+    preview: null, // New state for storing image preview
   });
 
   const [openPhotoDialog, setOpenPhotoDialog] = useState(false); // New state to control photo details dialog
@@ -106,7 +108,14 @@ const AlbumDetail = () => {
 
   const handleFileChange = (event) => {
     const file = event.target.files[0];
-    setNewPhoto({ ...newPhoto, image: file });
+    if (file) {
+      const filePreview = URL.createObjectURL(file); // Create a preview URL for the selected file
+      setNewPhoto({
+        ...newPhoto,
+        image: file,
+        preview: filePreview, // Store the preview URL
+      });
+    }
   };
 
   const handleUploadPhoto = async () => {
@@ -131,6 +140,13 @@ const AlbumDetail = () => {
       setOpenUploadDialog(false);
       const updatedAlbum = await getAlbumByID(id);
       setAlbum(updatedAlbum); // Fetch the updated album with new photo
+
+      // Clear the preview and photo after successful upload
+      setNewPhoto({
+        ...newPhoto,
+        preview: null,
+        image: null,
+      });
     } catch (error) {
       console.error('Failed to upload photo:', error);
       setSnackbarMessage('Failed to upload photo.');
@@ -144,10 +160,19 @@ const AlbumDetail = () => {
     setOpenPhotoDialog(true);
   };
 
-  const handleClosePhotoDialog = () => {
-    setOpenPhotoDialog(false);
-    setSelectedPhoto(null); // Reset selected photo when closing the dialog
-  };
+  // Setting up the drag-and-drop area using react-dropzone
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: 'image/*', // Only accept image files
+    onDrop: (acceptedFiles) => {
+      const file = acceptedFiles[0];
+      const filePreview = URL.createObjectURL(file);
+      setNewPhoto({
+        ...newPhoto,
+        image: file,
+        preview: filePreview, // Store the preview URL
+      });
+    },
+  });
 
   if (!album) {
     return <Typography>Loading...</Typography>;
@@ -213,7 +238,7 @@ const AlbumDetail = () => {
 
               {/* Deskripsi di kanan */}
               <Grid item xs={7}>
-              <Typography variant="body1" sx={{ mb: 2 }}>
+                <Typography variant="body1" sx={{ mb: 2 }}>
                   <strong>{selectedPhoto.JudulFoto}</strong> 
                 </Typography>
                 <Typography variant="body1" sx={{ mb: 2 }}>
@@ -228,56 +253,72 @@ const AlbumDetail = () => {
         </Dialog>
       )}
 
-      {/* Dialog for Edit Album */}
-      <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
-        <DialogTitle>Edit Album</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Album Name"
-            variant="outlined"
-            fullWidth
-            value={albumData.NamaAlbum}
-            onChange={(e) => setAlbumData({ ...albumData, NamaAlbum: e.target.value })}
-            sx={{ marginBottom: 2 }}
-          />
-          <TextField
-            label="Description"
-            variant="outlined"
-            fullWidth
-            multiline
-            rows={4}
-            value={albumData.Deskripsi}
-            onChange={(e) => setAlbumData({ ...albumData, Deskripsi: e.target.value })}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseEditDialog} color="primary">Cancel</Button>
-          <Button onClick={handleSaveAlbumChanges} color="primary">Save</Button>
-        </DialogActions>
-      </Dialog>
-
-      {/* Dialog for Upload Photo */}
+      {/* Dialog for Uploading Photo */}
       <Dialog open={openUploadDialog} onClose={handleCloseUploadDialog}>
         <DialogTitle>Upload Photo</DialogTitle>
-        <DialogContent>
-          <TextField
-            label="Title"
-            variant="outlined"
-            fullWidth
-            value={newPhoto.JudulFoto}
-            onChange={(e) => setNewPhoto({ ...newPhoto, JudulFoto: e.target.value })}
-            sx={{ marginBottom: 2 }}
-          />
-          <TextField
-            label="Description"
-            variant="outlined"
-            fullWidth
-            multiline
-            rows={4}
-            value={newPhoto.DeskripsiFoto}
-            onChange={(e) => setNewPhoto({ ...newPhoto, DeskripsiFoto: e.target.value })}
-          />
-          <input type="file" onChange={handleFileChange} />
+        <DialogContent sx={{ display: 'flex' }}>
+          {/* Drag and Drop Area */}
+          <Box
+            {...getRootProps()}
+            sx={{
+              border: '2px dashed #ccc',
+              padding: 2,
+              width: '50%',
+              marginRight: 2,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              cursor: 'pointer',
+              position: 'relative',
+            }}
+          >
+            <input {...getInputProps()} />
+            <Typography>Drag & Drop Image Here</Typography>
+
+            {/* Show image preview inside the drag and drop area */}
+            {newPhoto.preview && (
+              <Box
+                sx={{
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  width: '100%',
+                  height: '100%',
+                  backgroundColor: 'rgba(255, 255, 255, 0.6)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}
+              >
+                <img
+                  src={newPhoto.preview}
+                  alt="Preview"
+                  style={{ width: '100%', height: 'auto', objectFit: 'contain', borderRadius: 8 }}
+                />
+              </Box>
+            )}
+          </Box>
+
+          {/* Photo Details Form */}
+          <Box sx={{ width: '50%' }}>
+            <TextField
+              label="Title"
+              variant="outlined"
+              fullWidth
+              value={newPhoto.JudulFoto}
+              onChange={(e) => setNewPhoto({ ...newPhoto, JudulFoto: e.target.value })}
+              sx={{ marginBottom: 2 }}
+            />
+            <TextField
+              label="Description"
+              variant="outlined"
+              fullWidth
+              multiline
+              rows={4}
+              value={newPhoto.DeskripsiFoto}
+              onChange={(e) => setNewPhoto({ ...newPhoto, DeskripsiFoto: e.target.value })}
+            />
+          </Box>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseUploadDialog} color="primary">Cancel</Button>
