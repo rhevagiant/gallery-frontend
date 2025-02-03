@@ -12,6 +12,8 @@ import { bluegray } from '../../themes/color';
 import { deleteAlbum, updateAlbum } from '../../store/endpoint/album/UDalbum'; // Import API functions
 import { uploadPhoto } from '../../store/endpoint/photo/uploadPhoto'; // Add API function for uploading photos
 import { useDropzone } from 'react-dropzone'; // Import useDropzone hook
+import { deletePhoto } from '../../store/endpoint/photo/deletePhoto';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 
 const AlbumDetail = () => {
   const { id } = useParams();
@@ -115,6 +117,29 @@ const AlbumDetail = () => {
     }
   };
 
+  const handleDeletePhoto = async (FotoID) => {
+    console.log("Deleting photo with ID:", FotoID);
+    try {
+      await deletePhoto(FotoID);
+      setSnackbarMessage('Photo deleted successfully!');
+      setSnackbarSeverity('success');
+      setOpenSnackbar(true);
+      setOpenPhotoDialog(false);
+      setSelectedPhoto(null);
+
+      // Perbarui album setelah penghapusan
+      const updatedAlbum = await getAlbumByID(id);
+      setAlbum(updatedAlbum);
+    } catch (error) {
+      console.error('Failed to delete photo:', error);
+      setSnackbarMessage(`Failed to delete photo: ${error.response?.data?.message || 'Unknown error'}`);
+      setSnackbarSeverity('error');
+      setOpenSnackbar(true);
+    }
+  };
+
+
+
   const handleUploadPhoto = async () => {
     if (!newPhoto.image) {
       setSnackbarMessage('Please select an image.');
@@ -122,6 +147,7 @@ const AlbumDetail = () => {
       setOpenSnackbar(true);
       return;
     }
+
 
     try {
       const formData = new FormData();
@@ -248,7 +274,6 @@ const AlbumDetail = () => {
                   style={{ width: '100%', borderRadius: 8 }}
                 />
               </Grid>
-
               <Grid item xs={7}>
                 <Typography variant="body1" sx={{ mb: 2, mt: 2 }}>
                   <strong>{selectedPhoto.JudulFoto}</strong>
@@ -259,6 +284,19 @@ const AlbumDetail = () => {
                 <Typography variant="caption" color="textSecondary">
                   Foto ID: {selectedPhoto.FotoID}
                 </Typography>
+                <Box mt={2} >
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => handleDeletePhoto(selectedPhoto.FotoID)}
+                    sx={{
+                      p: 1,            // Padding kecil
+                      minWidth: 'auto' // Menghindari tombol terlalu lebar
+                    }}
+                  >
+                    <DeleteOutlineIcon />
+                  </Button>
+                </Box>
               </Grid>
             </Grid>
           </DialogContent>
