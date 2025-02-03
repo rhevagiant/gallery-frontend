@@ -15,10 +15,10 @@ import { useDropzone } from 'react-dropzone'; // Import useDropzone hook
 
 const AlbumDetail = () => {
   const { id } = useParams();
-  const navigate = useNavigate(); // Use navigate from React Router v6
+  const navigate = useNavigate();
   const [album, setAlbum] = useState(null);
-  const [selectedPhoto, setSelectedPhoto] = useState(null); // For displaying photo in modal
-  const [openEditDialog, setOpenEditDialog] = useState(false); // To control dialog open/close
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [openEditDialog, setOpenEditDialog] = useState(false);
   const [albumData, setAlbumData] = useState({
     NamaAlbum: '',
     Deskripsi: '',
@@ -26,17 +26,14 @@ const AlbumDetail = () => {
   const [openSnackbar, setOpenSnackbar] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
-
-  // State for file upload and form data
   const [openUploadDialog, setOpenUploadDialog] = useState(false);
   const [newPhoto, setNewPhoto] = useState({
     JudulFoto: '',
     DeskripsiFoto: '',
     image: null,
-    preview: null, // New state for storing image preview
+    preview: null,
   });
-
-  const [openPhotoDialog, setOpenPhotoDialog] = useState(false); // New state to control photo details dialog
+  const [openPhotoDialog, setOpenPhotoDialog] = useState(false);
 
   useEffect(() => {
     const fetchAlbumDetail = async () => {
@@ -69,7 +66,7 @@ const AlbumDetail = () => {
       setSnackbarSeverity('success');
       setOpenSnackbar(true);
       setOpenEditDialog(false);
-      const updatedAlbum = await getAlbumByID(id); 
+      const updatedAlbum = await getAlbumByID(id);
       setAlbum(updatedAlbum);
     } catch (error) {
       console.error('Failed to update album:', error);
@@ -109,11 +106,11 @@ const AlbumDetail = () => {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (file) {
-      const filePreview = URL.createObjectURL(file); // Create a preview URL for the selected file
+      const filePreview = URL.createObjectURL(file);
       setNewPhoto({
         ...newPhoto,
         image: file,
-        preview: filePreview, // Store the preview URL
+        preview: filePreview,
       });
     }
   };
@@ -139,13 +136,14 @@ const AlbumDetail = () => {
       setOpenSnackbar(true);
       setOpenUploadDialog(false);
       const updatedAlbum = await getAlbumByID(id);
-      setAlbum(updatedAlbum); // Fetch the updated album with new photo
+      setAlbum(updatedAlbum);
 
-      // Clear the preview and photo after successful upload
+      // Reset form after successful upload
       setNewPhoto({
-        ...newPhoto,
-        preview: null,
+        JudulFoto: '',
+        DeskripsiFoto: '',
         image: null,
+        preview: null,
       });
     } catch (error) {
       console.error('Failed to upload photo:', error);
@@ -162,14 +160,14 @@ const AlbumDetail = () => {
 
   // Setting up the drag-and-drop area using react-dropzone
   const { getRootProps, getInputProps } = useDropzone({
-    accept: 'image/*', // Only accept image files
+    accept: 'image/*',
     onDrop: (acceptedFiles) => {
       const file = acceptedFiles[0];
       const filePreview = URL.createObjectURL(file);
       setNewPhoto({
         ...newPhoto,
         image: file,
-        preview: filePreview, // Store the preview URL
+        preview: filePreview,
       });
     },
   });
@@ -179,10 +177,18 @@ const AlbumDetail = () => {
   }
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box
+      sx={{
+        padding: 3,
+        height: 'calc(100vh - 64px)', // Adjust this value based on the sidebar height
+        overflowY: 'auto', // Allow scrolling within the content
+      }}
+    >
       <Box display="flex" justifyContent="space-between" alignItems="center">
         <Box>
-          <Typography variant="h6" gutterBottom><strong>{album.NamaAlbum}</strong></Typography>
+          <Typography variant="h6" gutterBottom>
+            <strong>{album.NamaAlbum}</strong>
+          </Typography>
           <Typography color="textSecondary">{album.Deskripsi}</Typography>
         </Box>
         <Box>
@@ -207,7 +213,15 @@ const AlbumDetail = () => {
         {album?.Photos?.length > 0 ? (
           album.Photos.map((foto) => (
             <Grid item xs={6} sm={4} md={3} key={foto.FotoID}>
-              <Card sx={{ width: 200, height: 200, cursor: 'pointer', overflow: 'hidden' }} onClick={() => handleOpenPhotoDialog(foto)}>
+              <Card
+                sx={{
+                  width: 200,
+                  height: 200,
+                  cursor: 'pointer',
+                  overflow: 'hidden',
+                }}
+                onClick={() => handleOpenPhotoDialog(foto)}
+              >
                 <CardMedia
                   component="img"
                   image={foto.LokasiFile}
@@ -227,7 +241,6 @@ const AlbumDetail = () => {
         <Dialog open={Boolean(selectedPhoto)} onClose={() => setSelectedPhoto(null)} maxWidth="md" fullWidth>
           <DialogContent sx={{ backgroundColor: bluegray[50] }}>
             <Grid container spacing={2} alignItems="center">
-              {/* Foto di kiri */}
               <Grid item xs={5}>
                 <img
                   src={selectedPhoto.LokasiFile}
@@ -236,10 +249,9 @@ const AlbumDetail = () => {
                 />
               </Grid>
 
-              {/* Deskripsi di kanan */}
               <Grid item xs={7}>
-                <Typography variant="body1" sx={{ mb: 2 }}>
-                  <strong>{selectedPhoto.JudulFoto}</strong> 
+                <Typography variant="body1" sx={{ mb: 2, mt: 2 }}>
+                  <strong>{selectedPhoto.JudulFoto}</strong>
                 </Typography>
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   <strong>Deskripsi:</strong> {selectedPhoto.DeskripsiFoto || 'Tidak ada deskripsi'}
@@ -256,8 +268,7 @@ const AlbumDetail = () => {
       {/* Dialog for Uploading Photo */}
       <Dialog open={openUploadDialog} onClose={handleCloseUploadDialog}>
         <DialogTitle>Upload Photo</DialogTitle>
-        <DialogContent sx={{ display: 'flex' }}>
-          {/* Drag and Drop Area */}
+        <DialogContent sx={{ display: 'flex', overflowY: 'auto', maxHeight: '100vh' }}>
           <Box
             {...getRootProps()}
             sx={{
@@ -275,7 +286,6 @@ const AlbumDetail = () => {
             <input {...getInputProps()} />
             <Typography>Drag & Drop Image Here</Typography>
 
-            {/* Show image preview inside the drag and drop area */}
             {newPhoto.preview && (
               <Box
                 sx={{
@@ -299,7 +309,6 @@ const AlbumDetail = () => {
             )}
           </Box>
 
-          {/* Photo Details Form */}
           <Box sx={{ width: '50%' }}>
             <TextField
               label="Title"
@@ -323,6 +332,33 @@ const AlbumDetail = () => {
         <DialogActions>
           <Button onClick={handleCloseUploadDialog} color="primary">Cancel</Button>
           <Button onClick={handleUploadPhoto} color="primary">Upload</Button>
+        </DialogActions>
+      </Dialog>
+
+      <Dialog open={openEditDialog} onClose={handleCloseEditDialog}>
+        <DialogTitle>Edit Album</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Album Name"
+            variant="outlined"
+            fullWidth
+            value={albumData.NamaAlbum}
+            onChange={(e) => setAlbumData({ ...albumData, NamaAlbum: e.target.value })}
+            sx={{ marginBottom: 2 }}
+          />
+          <TextField
+            label="Description"
+            variant="outlined"
+            fullWidth
+            multiline
+            rows={4}
+            value={albumData.Deskripsi}
+            onChange={(e) => setAlbumData({ ...albumData, Deskripsi: e.target.value })}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseEditDialog} color="primary">Cancel</Button>
+          <Button onClick={handleSaveAlbumChanges} color="primary">Save</Button>
         </DialogActions>
       </Dialog>
 
