@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { 
-  Box, Typography, Card, CardContent, Grid, 
-  Button, Dialog, DialogTitle, DialogContent, 
-  TextField, DialogActions 
+import {
+  Box, Typography, Card, CardContent, Grid,
+  Button, Dialog, DialogTitle, DialogContent,
+  TextField, DialogActions
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import { getAllAlbums } from '../../store/endpoint/album/getAllAlbum';
@@ -41,29 +41,34 @@ const AlbumList = () => {
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Albums
+        <strong>Albums</strong>
       </Typography>
 
       {/* Tombol di sebelah kanan */}
       <Box sx={{ display: 'flex', justifyContent: 'flex-end', mb: 2 }}>
-        <Button 
-          variant="contained" 
-          sx={{ backgroundColor: bluegray[500], color: 'white' }}
+        <Button
+          variant="contained"
+          sx={{
+            backgroundColor: bluegray[700],
+            color: 'white',
+            '&:hover': { backgroundColor: bluegray[500] }
+          }}
           onClick={() => setOpen(true)}
         >
           Create Album
         </Button>
       </Box>
 
+
       {/* Grid Album */}
       <Grid container spacing={2}>
         {albums.map((Album) => (
           <Grid item xs={12} sm={6} md={4} key={Album.AlbumID}>
             <Link to={`/album/${Album.AlbumID}`} style={{ textDecoration: 'none' }}>
-              <Card sx={{ maxWidth: 300, margin: 'auto', padding: 2 }}>
+              <Card sx={{ maxWidth: 300, margin: 'auto', padding: 2, backgroundColor: bluegray[700] }}>
                 <CardContent>
-                  <Typography variant="h6">{Album.NamaAlbum}</Typography>
-                  <Typography color="textSecondary">{Album.Deskripsi}</Typography>
+                  <Typography variant="h6" sx={{ color: 'white' }}><strong>{Album.NamaAlbum}</strong></Typography>
+                  <Typography color='white'>{Album.Deskripsi}</Typography>
                 </CardContent>
               </Card>
             </Link>
@@ -73,7 +78,7 @@ const AlbumList = () => {
 
       {/* Dialog Create Album */}
       <Dialog open={open} onClose={() => setOpen(false)}>
-        <DialogTitle >Create New Album</DialogTitle>
+        <DialogTitle>Create New Album</DialogTitle>
         <DialogContent>
           <TextField
             label="Nama Album"

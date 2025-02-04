@@ -14,6 +14,7 @@ import { uploadPhoto } from '../../store/endpoint/photo/uploadPhoto'; // Add API
 import { useDropzone } from 'react-dropzone'; // Import useDropzone hook
 import { deletePhoto } from '../../store/endpoint/photo/deletePhoto';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
+import Swal from 'sweetalert2';
 
 const AlbumDetail = () => {
   const { id } = useParams();
@@ -79,19 +80,32 @@ const AlbumDetail = () => {
   };
 
   const handleDeleteAlbum = async () => {
-    try {
-      await deleteAlbum(id);
-      setSnackbarMessage('Album deleted successfully!');
-      setSnackbarSeverity('success');
-      setOpenSnackbar(true);
-      navigate('/albums');
-    } catch (error) {
-      console.error('Failed to delete album:', error);
-      setSnackbarMessage('Failed to delete album.');
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
-    }
+    Swal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!"
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteAlbum(id);
+          setSnackbarMessage("Album deleted successfully!");
+          setSnackbarSeverity("success");
+          setOpenSnackbar(true);
+          navigate("/albums");
+        } catch (error) {
+          console.error("Failed to delete album:", error);
+          setSnackbarMessage("Failed to delete album.");
+          setSnackbarSeverity("error");
+          setOpenSnackbar(true);
+        }
+      }
+    });
   };
+
 
   const handleCloseSnackbar = () => {
     setOpenSnackbar(false);
@@ -118,27 +132,39 @@ const AlbumDetail = () => {
   };
 
   const handleDeletePhoto = async (FotoID) => {
-    console.log("Deleting photo with ID:", FotoID);
-    try {
-      await deletePhoto(FotoID);
-      setSnackbarMessage('Photo deleted successfully!');
-      setSnackbarSeverity('success');
-      setOpenSnackbar(true);
-      setOpenPhotoDialog(false);
-      setSelectedPhoto(null);
+    // Tutup dialog sebelum SweetAlert muncul
+    setOpenPhotoDialog(false);
+    setSelectedPhoto(null);
 
-      // Perbarui album setelah penghapusan
-      const updatedAlbum = await getAlbumByID(id);
-      setAlbum(updatedAlbum);
-    } catch (error) {
-      console.error('Failed to delete photo:', error);
-      setSnackbarMessage(`Failed to delete photo: ${error.response?.data?.message || 'Unknown error'}`);
-      setSnackbarSeverity('error');
-      setOpenSnackbar(true);
+    // Tunggu SweetAlert sebelum melanjutkan
+    const result = await Swal.fire({
+      title: "Are you sure?",
+      text: "This action cannot be undone!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, delete it!"
+    });
+
+    if (result.isConfirmed) {
+      try {
+        await deletePhoto(FotoID);
+        setSnackbarMessage("Photo deleted successfully!");
+        setSnackbarSeverity("success");
+        setOpenSnackbar(true);
+
+        // Refresh album setelah menghapus foto
+        const updatedAlbum = await getAlbumByID(id);
+        setAlbum(updatedAlbum);
+      } catch (error) {
+        console.error("Failed to delete photo:", error);
+        setSnackbarMessage(`Failed to delete photo: ${error.response?.data?.message || 'Unknown error'}`);
+        setSnackbarSeverity("error");
+        setOpenSnackbar(true);
+      }
     }
   };
-
-
 
   const handleUploadPhoto = async () => {
     if (!newPhoto.image) {
@@ -226,12 +252,17 @@ const AlbumDetail = () => {
           </IconButton>
           <Button
             variant="contained"
-            sx={{ backgroundColor: bluegray[500], color: 'white', ml: 2 }}
+            sx={{
+              backgroundColor: bluegray[700],
+              color: 'white',
+              ml: 2,
+              '&:hover': { backgroundColor: bluegray[500] }
+            }}
             onClick={handleOpenUploadDialog}
-            startIcon={<AddPhotoIcon />}
-          >
+            startIcon={<AddPhotoIcon />}>
             Add Photo
           </Button>
+
         </Box>
       </Box>
 

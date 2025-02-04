@@ -21,7 +21,10 @@ const PhotoList = () => {
   return (
     <Box sx={{ padding: 3 }}>
       <Typography variant="h4" gutterBottom>
-        Photos
+        <strong>Photos</strong>
+      </Typography>
+      <Typography  color="textSecondary" sx={{ mb: 6 }}>
+        This all your photos
       </Typography>
       <Grid container spacing={3}>
         {photos.map((photo) => (
