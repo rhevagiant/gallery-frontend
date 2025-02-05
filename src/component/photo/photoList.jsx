@@ -7,6 +7,8 @@ import { useDropzone } from 'react-dropzone';
 import AddPhotoIcon from '@mui/icons-material/AddPhotoAlternate';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { bluegray } from '../../themes/color';
+import Swal from 'sweetalert2';
+import { deletePhoto } from '../../store/endpoint/photo/deletePhoto';
 
 
 const PhotoList = () => {
@@ -82,6 +84,31 @@ const PhotoList = () => {
     }
   };
 
+  const handleDeletePhoto = async (fotoID) => {
+    setSelectedPhoto(null);
+    Swal.fire({
+      title: 'Are you sure?',
+      text: 'This photo will be deleted permanently!',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Yes, delete it!',
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deletePhoto(fotoID);
+          setPhotos((prevPhotos) => prevPhotos.filter((photo) => photo.FotoID !== fotoID));
+          setSelectedPhoto(null);
+          Swal.fire('Deleted!', 'Your photo has been deleted.', 'success');
+        } catch (error) {
+          console.error('Error deleting photo:', error);
+          Swal.fire('Error!', 'Failed to delete photo.', 'error');
+        }
+      }
+    });
+  };
+
 
   return (
     <Box sx={{ padding: 3, mt: 7 }}>
@@ -137,7 +164,7 @@ const PhotoList = () => {
                   Foto ID: {selectedPhoto.FotoID}
                 </Typography>
                 <Box mt={2}>
-                  <Button variant="outlined" color="error" onClick={() => console.log('Delete', selectedPhoto.FotoID)}>
+                  <Button variant="outlined" color="error" onClick={() => handleDeletePhoto(selectedPhoto.FotoID)}>
                     <DeleteOutlineIcon />
                   </Button>
                 </Box>
@@ -158,7 +185,7 @@ const PhotoList = () => {
             {file ? (
               <img src={file.preview} alt="Preview" width="100%" height="100%" style={{ objectFit: 'cover' }} />
             ) : (
-              <Typography>Drag & drop an image here or click to select</Typography>
+              <Typography>Drag & drop an image here</Typography>
             )}
           </Box>
           <Box sx={{ width: '50%', display: 'flex', flexDirection: 'column', gap: 2 }}>
