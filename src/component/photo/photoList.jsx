@@ -5,7 +5,9 @@ import { getAllAlbums } from '../../store/endpoint/album/getAllAlbum';
 import { uploadPhoto } from '../../store/endpoint/photo/uploadPhoto';
 import { useDropzone } from 'react-dropzone';
 import AddPhotoIcon from '@mui/icons-material/AddPhotoAlternate';
+import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { bluegray } from '../../themes/color';
+
 
 const PhotoList = () => {
   const [photos, setPhotos] = useState([]);
@@ -15,6 +17,7 @@ const PhotoList = () => {
   const [deskripsiFoto, setDeskripsiFoto] = useState('');
   const [albums, setAlbums] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState('');
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -101,7 +104,7 @@ const PhotoList = () => {
       <Grid container spacing={3}>
         {photos.map((photo) => (
           <Grid item xs={12} sm={6} md={4} key={photo.FotoID}>
-            <Card sx={{ width: 200, height: 200, cursor: 'pointer' }}>
+            <Card sx={{ width: 200, height: 200, cursor: 'pointer' }}  onClick={() => setSelectedPhoto(photo)}>
               <CardMedia
                 component="img"
                 image={photo.LokasiFile}
@@ -112,6 +115,37 @@ const PhotoList = () => {
           </Grid>
         ))}
       </Grid>
+      {selectedPhoto && (
+        <Dialog open={Boolean(selectedPhoto)} onClose={() => setSelectedPhoto(null)} maxWidth="md" fullWidth>
+          <DialogContent sx={{ backgroundColor: bluegray[50] }}>
+            <Grid container spacing={2} alignItems="center">
+              <Grid item xs={5}>
+                <img
+                  src={selectedPhoto.LokasiFile}
+                  alt={selectedPhoto.JudulFoto}
+                  style={{ width: '100%', borderRadius: 8 }}
+                />
+              </Grid>
+              <Grid item xs={7}>
+                <Typography variant="body1" sx={{ mb: 2, mt: 2 }}>
+                  <strong>{selectedPhoto.JudulFoto}</strong>
+                </Typography>
+                <Typography variant="body1" sx={{ mb: 2 }}>
+                  <strong>Deskripsi:</strong> {selectedPhoto.DeskripsiFoto || 'Tidak ada deskripsi'}
+                </Typography>
+                <Typography variant="caption" color="textSecondary">
+                  Foto ID: {selectedPhoto.FotoID}
+                </Typography>
+                <Box mt={2}>
+                  <Button variant="outlined" color="error" onClick={() => console.log('Delete', selectedPhoto.FotoID)}>
+                    <DeleteOutlineIcon />
+                  </Button>
+                </Box>
+              </Grid>
+            </Grid>
+          </DialogContent>
+        </Dialog>
+      )}
       {/* Dialog Upload Foto */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Upload Photo</DialogTitle>
