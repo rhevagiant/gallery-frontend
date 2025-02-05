@@ -1,9 +1,20 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardMedia, Grid } from '@mui/material';
-import { getAllPhotos } from '../../store/endpoint/photo/AllPhoto'; // Pastikan path sesuai
+import { Box, Typography, Card, CardMedia, Grid, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem } from '@mui/material';
+import { getAllPhotos } from '../../store/endpoint/photo/AllPhoto';
+import { getAllAlbums } from '../../store/endpoint/album/getAllAlbum';
+import { uploadPhoto } from '../../store/endpoint/photo/uploadPhoto';
+import { useDropzone } from 'react-dropzone';
+import AddPhotoIcon from '@mui/icons-material/AddPhotoAlternate';
+import { bluegray } from '../../themes/color';
 
 const PhotoList = () => {
   const [photos, setPhotos] = useState([]);
+  const [open, setOpen] = useState(false);
+  const [file, setFile] = useState(null);
+  const [judulFoto, setJudulFoto] = useState('');
+  const [deskripsiFoto, setDeskripsiFoto] = useState('');
+  const [albums, setAlbums] = useState([]);
+  const [selectedAlbum, setSelectedAlbum] = useState('');
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -14,31 +25,86 @@ const PhotoList = () => {
         console.error('Error fetching photos:', error);
       }
     };
-
     fetchPhotos();
   }, []);
 
+  useEffect(() => {
+    const fetchAlbums = async () => {
+      try {
+        const data = await getAllAlbums();
+        setAlbums(data);
+        if (data.length > 0) {
+          setSelectedAlbum(data[0].AlbumID);
+        }
+      } catch (error) {
+        console.error('Error fetching albums:', error);
+      }
+    };
+    fetchAlbums();
+  }, []);
+
+  const { getRootProps, getInputProps } = useDropzone({
+    accept: 'image/*',
+    onDrop: (acceptedFiles) => {
+      setFile(Object.assign(acceptedFiles[0], { preview: URL.createObjectURL(acceptedFiles[0]) }));
+    },
+  });
+
+  const handleUpload = async () => {
+    if (!file || !judulFoto || !selectedAlbum) {
+      alert('Please complete all fields and select an image.');
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append('JudulFoto', judulFoto);
+    formData.append('DeskripsiFoto', deskripsiFoto);
+    formData.append('AlbumID', selectedAlbum);
+    formData.append('image', file, file.name);  // Change 'file' to 'image'
+
+
+    console.log('File sent:', formData.get('file'));
+
+    try {
+      const uploadedPhoto = await uploadPhoto(formData);
+      setPhotos((prevPhotos) => [uploadedPhoto, ...prevPhotos]);
+      setOpen(false);
+      setFile(null);
+      setJudulFoto('');
+      setDeskripsiFoto('');
+      setSelectedAlbum(albums.length > 0 ? albums[0].AlbumID : '');
+    } catch (error) {
+      console.error('Error uploading photo:', error);
+      alert('Failed to upload photo.');
+    }
+  };
+
+
   return (
     <Box sx={{ padding: 3, mt: 7 }}>
-      <Typography variant="h4" gutterBottom>
-        <strong>Photos</strong>
-      </Typography>
-      <Typography  color="textSecondary" sx={{ mb: 6 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Typography variant="h4" gutterBottom>
+          <strong>Photos</strong>
+        </Typography>
+        <Button variant="contained" onClick={() => setOpen(true)} sx={{
+          backgroundColor: bluegray[700],
+          color: 'white',
+          ml: 2,
+          '&:hover': { backgroundColor: bluegray[500] }
+        }} startIcon={<AddPhotoIcon />}>
+          Add Photo
+        </Button>
+      </Box>
+      <Typography color="textSecondary" sx={{ mb: 6 }}>
         This all your photos
       </Typography>
       <Grid container spacing={3}>
         {photos.map((photo) => (
           <Grid item xs={12} sm={6} md={4} key={photo.FotoID}>
-            <Card
-            sx={{
-              width: 200,
-              height: 200,
-              cursor: 'pointer'
-            }}
-            >
+            <Card sx={{ width: 200, height: 200, cursor: 'pointer' }}>
               <CardMedia
                 component="img"
-                image={photo.LokasiFile} // Sesuaikan dengan struktur backend
+                image={photo.LokasiFile}
                 alt={photo.JudulFoto}
                 sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
               />
@@ -46,6 +112,38 @@ const PhotoList = () => {
           </Grid>
         ))}
       </Grid>
+      {/* Dialog Upload Foto */}
+      <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Upload Photo</DialogTitle>
+        <DialogContent sx={{ display: 'flex', gap: 2 }}>
+          <Box
+            {...getRootProps()}
+            sx={{ width: '50%', height: 200, border: '2px dashed gray', display: 'flex', justifyContent: 'center', alignItems: 'center', cursor: 'pointer' }}
+          >
+            <input {...getInputProps()} />
+            {file ? (
+              <img src={file.preview} alt="Preview" width="100%" height="100%" style={{ objectFit: 'cover' }} />
+            ) : (
+              <Typography>Drag & drop an image here or click to select</Typography>
+            )}
+          </Box>
+          <Box sx={{ width: '50%', display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <TextField label="Photo Name" fullWidth value={judulFoto} onChange={(e) => setJudulFoto(e.target.value)} />
+            <TextField label="Description" fullWidth multiline rows={2} value={deskripsiFoto} onChange={(e) => setDeskripsiFoto(e.target.value)} />
+            <TextField select label="Select Album" fullWidth value={selectedAlbum} onChange={(e) => setSelectedAlbum(e.target.value)}>
+              {albums.map((album) => (
+                <MenuItem key={album.AlbumID} value={album.AlbumID}>
+                  {album.NamaAlbum}
+                </MenuItem>
+              ))}
+            </TextField>
+          </Box>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setOpen(false)} color="secondary">Cancel</Button>
+          <Button onClick={handleUpload} color="primary" variant="contained">Upload</Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 };
