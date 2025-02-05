@@ -232,6 +232,7 @@ const AlbumDetail = () => {
     <Box
       sx={{
         padding: 3,
+        mt: 7,
         height: 'calc(100vh - 64px)', // Adjust this value based on the sidebar height
         overflowY: 'auto', // Allow scrolling within the content
       }}

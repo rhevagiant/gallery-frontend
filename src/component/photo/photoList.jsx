@@ -19,7 +19,7 @@ const PhotoList = () => {
   }, []);
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box sx={{ padding: 3, mt: 7 }}>
       <Typography variant="h4" gutterBottom>
         <strong>Photos</strong>
       </Typography>
