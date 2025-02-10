@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardMedia, Grid, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem } from '@mui/material';
+import { Box, Typography, Card, CardMedia, Grid, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, List, ListItem, IconButton, ListItemText } from '@mui/material';
 import { getAllPhotos } from '../../store/endpoint/photo/AllPhoto';
 import { getAllAlbums } from '../../store/endpoint/album/getAllAlbum';
 import { uploadPhoto } from '../../store/endpoint/photo/uploadPhoto';
@@ -9,6 +9,9 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import { bluegray } from '../../themes/color';
 import Swal from 'sweetalert2';
 import { deletePhoto } from '../../store/endpoint/photo/deletePhoto';
+import { addCommentToPhoto, getCommentsByPhoto, deleteComment } from '../../store/endpoint/komentar/komentar';
+import { DeleteOutline, Favorite, FavoriteBorderOutlined } from '@mui/icons-material';
+import { likePhoto } from '../../store/endpoint/likes/likes';
 
 
 const PhotoList = () => {
@@ -20,6 +23,10 @@ const PhotoList = () => {
   const [albums, setAlbums] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState('');
   const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [newComment, setNewComment] = useState('');
+  const [likedPhotos, setLikedPhotos] = useState({});
+
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -110,6 +117,36 @@ const PhotoList = () => {
   };
 
 
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    try {
+      const addedComment = await addCommentToPhoto(selectedPhoto.FotoID, newComment);
+      setComments([...comments, addedComment]);
+      setNewComment('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    try {
+      await deleteComment(commentId);
+      setComments(comments.filter(comment => comment.KomentarID !== commentId));
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    }
+  };
+
+  const handleLikePhoto = async (fotoID) => {
+    try {
+      await likePhoto(fotoID);
+      setLikedPhotos((prev) => ({ ...prev, [fotoID]: !prev[fotoID] }));
+    } catch (error) {
+      console.error('Error liking photo:', error);
+    }
+  };
+
+
   return (
     <Box sx={{ padding: 3, mt: 7 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -131,7 +168,7 @@ const PhotoList = () => {
       <Grid container spacing={3}>
         {photos.map((photo) => (
           <Grid item xs={12} sm={6} md={4} key={photo.FotoID}>
-            <Card sx={{ width: 200, height: 200, cursor: 'pointer' }}  onClick={() => setSelectedPhoto(photo)}>
+            <Card sx={{ width: 200, height: 200, cursor: 'pointer' }} onClick={() => setSelectedPhoto(photo)}>
               <CardMedia
                 component="img"
                 image={photo.LokasiFile}
@@ -142,37 +179,55 @@ const PhotoList = () => {
           </Grid>
         ))}
       </Grid>
+
       {selectedPhoto && (
         <Dialog open={Boolean(selectedPhoto)} onClose={() => setSelectedPhoto(null)} maxWidth="md" fullWidth>
           <DialogContent sx={{ backgroundColor: bluegray[50] }}>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={5}>
-                <img
-                  src={selectedPhoto.LokasiFile}
-                  alt={selectedPhoto.JudulFoto}
-                  style={{ width: '100%', borderRadius: 8 }}
-                />
+                <img src={selectedPhoto.LokasiFile} alt={selectedPhoto.JudulFoto} style={{ width: '100%', borderRadius: 8 }} />
               </Grid>
               <Grid item xs={7}>
-                <Typography variant="body1" sx={{ mb: 2, mt: 2 }}>
-                  <strong>{selectedPhoto.JudulFoto}</strong>
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Typography variant="body1" sx={{ mb: 2, mt: 2 }}>
+                    <strong>{selectedPhoto.JudulFoto}</strong>
+                  </Typography>
+                  <Box>
+                  <Button variant="outlined" color="error" onClick={() => handleDeletePhoto(selectedPhoto.FotoID)}>
+                    <DeleteOutlineIcon />
+                  </Button>
+                </Box>
+                </Box>
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   <strong>Deskripsi:</strong> {selectedPhoto.DeskripsiFoto || 'Tidak ada deskripsi'}
                 </Typography>
                 <Typography variant="caption" color="textSecondary">
                   Foto ID: {selectedPhoto.FotoID}
                 </Typography>
-                <Box mt={2}>
-                  <Button variant="outlined" color="error" onClick={() => handleDeletePhoto(selectedPhoto.FotoID)}>
-                    <DeleteOutlineIcon />
-                  </Button>
+                <Box sx={{ mt: 2 }}>
+                  <IconButton color="primary" onClick={() => handleLikePhoto(selectedPhoto.FotoID)}>
+                    {likedPhotos[selectedPhoto.FotoID] ? <Favorite color="error" /> : <FavoriteBorderOutlined />}
+                  </IconButton>
                 </Box>
+                <List>
+                  {comments.map((comment) => (
+                    <ListItem key={comment.KomentarID} secondaryAction={
+                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteComment(comment.KomentarID)}>
+                        <DeleteOutlineIcon />
+                      </IconButton>
+                    }>
+                      <ListItemText primary={comment.IsiKomentar} secondary={`By: ${comment.User?.NamaLengkap || 'Unknown'}`} />
+                    </ListItem>
+                  ))}
+                </List>
+                <TextField fullWidth label="Add a comment" value={newComment} onChange={(e) => setNewComment(e.target.value)} sx={{ mt: 2 }} />
+                <Button onClick={handleAddComment} variant="contained" sx={{ mt: 1 }}>Submit</Button>
               </Grid>
             </Grid>
           </DialogContent>
         </Dialog>
       )}
+
       {/* Dialog Upload Foto */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>Upload Photo</DialogTitle>
