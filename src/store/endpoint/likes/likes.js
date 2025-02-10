@@ -9,3 +9,13 @@ export const likePhoto = async (photoId) => {
         throw error;
     }
 };
+
+export const getLikesByPhoto = async (photoId) => {
+    try {
+        const response = await api.get(`/photo/${photoId}/allLikes`);
+        return response.data;
+    } catch (error) {
+        console.error('Error fetching like count:', error);
+        throw error;
+    }
+};

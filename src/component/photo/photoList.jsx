@@ -11,7 +11,7 @@ import Swal from 'sweetalert2';
 import { deletePhoto } from '../../store/endpoint/photo/deletePhoto';
 import { addCommentToPhoto, getCommentsByPhoto, deleteComment } from '../../store/endpoint/komentar/komentar';
 import { DeleteOutline, Favorite, FavoriteBorderOutlined } from '@mui/icons-material';
-import { likePhoto } from '../../store/endpoint/likes/likes';
+import { likePhoto, getLikesByPhoto } from '../../store/endpoint/likes/likes';
 
 
 const PhotoList = () => {
@@ -26,6 +26,7 @@ const PhotoList = () => {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [likedPhotos, setLikedPhotos] = useState({});
+  const [likeCounts, setLikeCounts] = useState({});
 
 
   useEffect(() => {
@@ -33,6 +34,26 @@ const PhotoList = () => {
       try {
         const data = await getAllPhotos();
         setPhotos(data);
+      } catch (error) {
+        console.error('Error fetching photos:', error);
+      }
+    };
+    fetchPhotos();
+  }, []);
+
+  useEffect(() => {
+    const fetchPhotos = async () => {
+      try {
+        const data = await getAllPhotos();
+        setPhotos(data);
+
+        // Ambil jumlah likes untuk setiap foto
+        const likeData = {};
+        for (const photo of data) {
+          const response = await getLikesByPhoto(photo.FotoID);
+          likeData[photo.FotoID] = response.data.likeCount;
+        }
+        setLikeCounts(likeData);
       } catch (error) {
         console.error('Error fetching photos:', error);
       }
@@ -140,11 +161,26 @@ const PhotoList = () => {
   const handleLikePhoto = async (fotoID) => {
     try {
       await likePhoto(fotoID);
-      setLikedPhotos((prev) => ({ ...prev, [fotoID]: !prev[fotoID] }));
+  
+      // Perbarui status like untuk foto yang dipilih
+      setLikedPhotos((prev) => ({
+        ...prev,
+        [fotoID]: !prev[fotoID], // Toggle status like
+      }));
+  
+      // Ambil jumlah like terbaru dari server
+      const response = await getLikesByPhoto(fotoID);
+      console.log("Updated like count:", response.data.likeCount); // Debugging
+  
+      setLikeCounts((prev) => ({
+        ...prev,
+        [fotoID]: response.data.likeCount, // Perbarui jumlah like sesuai data dari server
+      }));
     } catch (error) {
       console.error('Error liking photo:', error);
     }
   };
+  
 
 
   return (
@@ -204,10 +240,13 @@ const PhotoList = () => {
                 <Typography variant="caption" color="textSecondary">
                   Foto ID: {selectedPhoto.FotoID}
                 </Typography>
-                <Box sx={{ mt: 2 }}>
+                <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
                   <IconButton color="primary" onClick={() => handleLikePhoto(selectedPhoto.FotoID)}>
                     {likedPhotos[selectedPhoto.FotoID] ? <Favorite color="error" /> : <FavoriteBorderOutlined />}
                   </IconButton>
+                  <Typography variant="body2" sx={{ ml: 1 }}>
+                    {likeCounts[selectedPhoto.FotoID] || 0} Likes
+                  </Typography>
                 </Box>
                 <List>
                   {comments.map((comment) => (
