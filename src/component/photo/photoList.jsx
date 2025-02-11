@@ -231,6 +231,9 @@ const PhotoList = () => {
                   <Typography variant="body1" sx={{ mb: 2, mt: 2 }}>
                     <strong>{selectedPhoto.JudulFoto}</strong>
                   </Typography>
+                  <IconButton color="error" onClick={() => handleDeletePhoto(selectedPhoto.FotoID)}>
+                    <DeleteOutlineIcon />
+                  </IconButton>
                 </Box>
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   <strong>Deskripsi:</strong> {selectedPhoto.DeskripsiFoto || 'Tidak ada deskripsi'}
