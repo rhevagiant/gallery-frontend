@@ -25,21 +25,11 @@ const PhotoList = () => {
   const [selectedPhoto, setSelectedPhoto] = useState(null);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [selectedPhotoComments, setSelectedPhotoComments] = useState([]);
   const [likedPhotos, setLikedPhotos] = useState({});
   const [likeCounts, setLikeCounts] = useState({});
 
-
-  useEffect(() => {
-    const fetchPhotos = async () => {
-      try {
-        const data = await getAllPhotos();
-        setPhotos(data);
-      } catch (error) {
-        console.error('Error fetching photos:', error);
-      }
-    };
-    fetchPhotos();
-  }, []);
 
   useEffect(() => {
     const fetchPhotos = async () => {
@@ -138,49 +128,62 @@ const PhotoList = () => {
   };
 
 
+
+  const openCommentDialog = async (photo) => {
+    setSelectedPhoto(photo);
+    setCommentDialogOpen(true);
+    try {
+      const comments = await getCommentsByPhoto(photo.FotoID);
+      setSelectedPhotoComments(comments);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
+
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
     try {
       const addedComment = await addCommentToPhoto(selectedPhoto.FotoID, newComment);
-      setComments([...comments, addedComment]);
+      setSelectedPhotoComments((prevComments) => [...prevComments, addedComment]);
       setNewComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
+  const handleDeleteComment = async (KomentarID) => {
     try {
-      await deleteComment(commentId);
-      setComments(comments.filter(comment => comment.KomentarID !== commentId));
+      await deleteComment(KomentarID);
+
+      // Update state secara langsung agar UI langsung berubah
+      setSelectedPhotoComments((prevComments) =>
+        prevComments.filter(comment => comment.KomentarID !== KomentarID)
+      );
+
     } catch (error) {
       console.error('Error deleting comment:', error);
     }
   };
 
+
   const handleLikePhoto = async (fotoID) => {
     try {
       await likePhoto(fotoID);
-  
-      // Perbarui status like untuk foto yang dipilih
       setLikedPhotos((prev) => ({
         ...prev,
-        [fotoID]: !prev[fotoID], // Toggle status like
+        [fotoID]: !prev[fotoID],
       }));
-  
-      // Ambil jumlah like terbaru dari server
-      const response = await getLikesByPhoto(fotoID);
-      console.log("Updated like count:", response.data.likeCount); // Debugging
-  
+
+      // Langsung update state tanpa perlu request lagi ke API
       setLikeCounts((prev) => ({
         ...prev,
-        [fotoID]: response.data.likeCount, // Perbarui jumlah like sesuai data dari server
+        [fotoID]: (prev[fotoID] || 0) + (likedPhotos[fotoID] ? -1 : 1),
       }));
     } catch (error) {
       console.error('Error liking photo:', error);
     }
   };
-  
 
 
   return (
@@ -228,11 +231,6 @@ const PhotoList = () => {
                   <Typography variant="body1" sx={{ mb: 2, mt: 2 }}>
                     <strong>{selectedPhoto.JudulFoto}</strong>
                   </Typography>
-                  <Box>
-                  <Button variant="outlined" color="error" onClick={() => handleDeletePhoto(selectedPhoto.FotoID)}>
-                    <DeleteOutlineIcon />
-                  </Button>
-                </Box>
                 </Box>
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   <strong>Deskripsi:</strong> {selectedPhoto.DeskripsiFoto || 'Tidak ada deskripsi'}
@@ -248,24 +246,60 @@ const PhotoList = () => {
                     {likeCounts[selectedPhoto.FotoID] || 0} Likes
                   </Typography>
                 </Box>
-                <List>
-                  {comments.map((comment) => (
-                    <ListItem key={comment.KomentarID} secondaryAction={
-                      <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteComment(comment.KomentarID)}>
-                        <DeleteOutlineIcon />
-                      </IconButton>
-                    }>
-                      <ListItemText primary={comment.IsiKomentar} secondary={`By: ${comment.User?.NamaLengkap || 'Unknown'}`} />
-                    </ListItem>
-                  ))}
-                </List>
-                <TextField fullWidth label="Add a comment" value={newComment} onChange={(e) => setNewComment(e.target.value)} sx={{ mt: 2 }} />
-                <Button onClick={handleAddComment} variant="contained" sx={{ mt: 1 }}>Submit</Button>
+                <Button onClick={() => openCommentDialog(selectedPhoto)} sx={{ mt: 2 }} variant="outlined">
+                  View & Add Comments
+                </Button>
               </Grid>
             </Grid>
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Dialog Komentar */}
+      <Dialog open={commentDialogOpen} onClose={() => setCommentDialogOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Comments</DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", height: 400 }}>
+          <List sx={{ flexGrow: 1, overflow: "auto" }}>
+            {selectedPhotoComments.map((comment) => (
+              <ListItem
+                key={comment.KomentarID}
+                secondaryAction={
+                  <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteComment(comment.KomentarID)}>
+                    <DeleteOutlineIcon />
+                  </IconButton>
+                }
+              >
+                <ListItemText
+                  primary={comment.IsiKomentar}
+                  secondary={`By: ${comment.User?.NamaLengkap || comment.NamaUser || "Unknown"}`}
+                />
+              </ListItem>
+            ))}
+          </List>
+          <TextField
+            fullWidth
+            label="Add a comment"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          <Button
+            onClick={() => {
+              handleAddComment();
+              setSelectedPhotoComments((prevComments) => [
+                ...prevComments,
+                { KomentarID: Date.now(), IsiKomentar: newComment, User: { NamaLengkap: "You" } },
+              ]);
+              setNewComment("");
+            }}
+            variant="contained"
+            sx={{ mt: 1, backgroundColor: bluegray[700], '&:hover': { backgroundColor: bluegray[500] } }}
+          >
+            Submit
+          </Button>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Dialog Upload Foto */}
       <Dialog open={open} onClose={() => setOpen(false)} fullWidth maxWidth="sm">
@@ -299,7 +333,7 @@ const PhotoList = () => {
           <Button onClick={handleUpload} color="primary" variant="contained">Upload</Button>
         </DialogActions>
       </Dialog>
-    </Box>
+    </Box >
   );
 };
 
