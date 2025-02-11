@@ -2,7 +2,10 @@ import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Grid, Card, CardMedia, Dialog,
-  DialogTitle, DialogContent, IconButton, TextField, DialogActions, Button, Snackbar, Alert
+  DialogTitle, DialogContent, IconButton, TextField, DialogActions, Button, Snackbar, Alert,
+  List,
+  ListItem,
+  ListItemText
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -15,6 +18,9 @@ import { useDropzone } from 'react-dropzone'; // Import useDropzone hook
 import { deletePhoto } from '../../store/endpoint/photo/deletePhoto';
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline';
 import Swal from 'sweetalert2';
+import { addCommentToPhoto, deleteComment, getCommentsByPhoto } from '../../store/endpoint/komentar/komentar';
+import { likePhoto } from '../../store/endpoint/likes/likes';
+import { Favorite, FavoriteBorderOutlined } from '@mui/icons-material';
 
 const AlbumDetail = () => {
   const { id } = useParams();
@@ -30,6 +36,7 @@ const AlbumDetail = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [snackbarSeverity, setSnackbarSeverity] = useState('success');
   const [openUploadDialog, setOpenUploadDialog] = useState(false);
+
   const [newPhoto, setNewPhoto] = useState({
     JudulFoto: '',
     DeskripsiFoto: '',
@@ -37,6 +44,11 @@ const AlbumDetail = () => {
     preview: null,
   });
   const [openPhotoDialog, setOpenPhotoDialog] = useState(false);
+  const [newComment, setNewComment] = useState('');
+  const [commentDialogOpen, setCommentDialogOpen] = useState(false);
+  const [selectedPhotoComments, setSelectedPhotoComments] = useState([]);
+  const [likedPhotos, setLikedPhotos] = useState({});
+  const [likeCounts, setLikeCounts] = useState({});
 
   useEffect(() => {
     const fetchAlbumDetail = async () => {
@@ -175,6 +187,7 @@ const AlbumDetail = () => {
     }
 
 
+
     try {
       const formData = new FormData();
       formData.append('image', newPhoto.image);
@@ -227,6 +240,60 @@ const AlbumDetail = () => {
   if (!album) {
     return <Typography>Loading...</Typography>;
   }
+
+  const openCommentDialog = async (photo) => {
+    setSelectedPhoto(photo);
+    setCommentDialogOpen(true);
+    try {
+      const comments = await getCommentsByPhoto(photo.FotoID);
+      setSelectedPhotoComments(comments);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    }
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim()) return;
+    try {
+      const addedComment = await addCommentToPhoto(selectedPhoto.FotoID, newComment);
+      setSelectedPhotoComments((prevComments) => [...prevComments, addedComment]);
+      setNewComment('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+    }
+  };
+
+  const handleDeleteComment = async (KomentarID) => {
+    try {
+      await deleteComment(KomentarID);
+
+      // Update state secara langsung agar UI langsung berubah
+      setSelectedPhotoComments((prevComments) =>
+        prevComments.filter(comment => comment.KomentarID !== KomentarID)
+      );
+
+    } catch (error) {
+      console.error('Error deleting comment:', error);
+    }
+  };
+
+  const handleLikePhoto = async (fotoID) => {
+    try {
+      await likePhoto(fotoID);
+      setLikedPhotos((prev) => ({
+        ...prev,
+        [fotoID]: !prev[fotoID],
+      }));
+
+      // Langsung update state tanpa perlu request lagi ke API
+      setLikeCounts((prev) => ({
+        ...prev,
+        [fotoID]: (prev[fotoID] || 0) + (likedPhotos[fotoID] ? -1 : 1),
+      }));
+    } catch (error) {
+      console.error('Error liking photo:', error);
+    }
+  };
 
   return (
     <Box
@@ -300,40 +367,85 @@ const AlbumDetail = () => {
           <DialogContent sx={{ backgroundColor: bluegray[50] }}>
             <Grid container spacing={2} alignItems="center">
               <Grid item xs={5}>
-                <img
-                  src={selectedPhoto.LokasiFile}
-                  alt={selectedPhoto.JudulFoto}
-                  style={{ width: '100%', borderRadius: 8 }}
-                />
+                <img src={selectedPhoto.LokasiFile} alt={selectedPhoto.JudulFoto} style={{ width: '100%', borderRadius: 8 }} />
               </Grid>
               <Grid item xs={7}>
-                <Typography variant="body1" sx={{ mb: 2, mt: 2 }}>
-                  <strong>{selectedPhoto.JudulFoto}</strong>
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                  <Typography variant="body1" sx={{ mb: 2, mt: 2 }}>
+                    <strong>{selectedPhoto.JudulFoto}</strong>
+                  </Typography>
+                  <IconButton color="error" onClick={() => handleDeletePhoto(selectedPhoto.FotoID)}>
+                    <DeleteOutlineIcon />
+                  </IconButton>
+                </Box>
                 <Typography variant="body1" sx={{ mb: 2 }}>
                   <strong>Deskripsi:</strong> {selectedPhoto.DeskripsiFoto || 'Tidak ada deskripsi'}
                 </Typography>
                 <Typography variant="caption" color="textSecondary">
                   Foto ID: {selectedPhoto.FotoID}
                 </Typography>
-                <Box mt={2} >
-                  <Button
-                    variant="outlined"
-                    color="error"
-                    onClick={() => handleDeletePhoto(selectedPhoto.FotoID)}
-                    sx={{
-                      p: 1,            // Padding kecil
-                      minWidth: 'auto' // Menghindari tombol terlalu lebar
-                    }}
-                  >
-                    <DeleteOutlineIcon />
-                  </Button>
+                <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
+                  <IconButton color="primary" onClick={() => handleLikePhoto(selectedPhoto.FotoID)}>
+                    {likedPhotos[selectedPhoto.FotoID] ? <Favorite color="error" /> : <FavoriteBorderOutlined />}
+                  </IconButton>
+                  <Typography variant="body2" sx={{ ml: 1 }}>
+                    {likeCounts[selectedPhoto.FotoID] || 0} Likes
+                  </Typography>
                 </Box>
+                <Button onClick={() => openCommentDialog(selectedPhoto)} sx={{ mt: 2 }} variant="outlined">
+                  View & Add Comments
+                </Button>
               </Grid>
             </Grid>
           </DialogContent>
         </Dialog>
       )}
+
+      {/* Dialog Komentar */}
+      <Dialog open={commentDialogOpen} onClose={() => setCommentDialogOpen(false)} fullWidth maxWidth="sm">
+        <DialogTitle>Comments</DialogTitle>
+        <DialogContent sx={{ display: "flex", flexDirection: "column", height: 400 }}>
+          <List sx={{ flexGrow: 1, overflow: "auto" }}>
+            {selectedPhotoComments.map((comment) => (
+              <ListItem
+                key={comment.KomentarID}
+                secondaryAction={
+                  <IconButton edge="end" aria-label="delete" onClick={() => handleDeleteComment(comment.KomentarID)}>
+                    <DeleteOutlineIcon />
+                  </IconButton>
+                }
+              >
+                <ListItemText
+                  primary={comment.IsiKomentar}
+                  secondary={`By: ${comment.User?.NamaLengkap || comment.NamaUser || "Unknown"}`}
+                />
+              </ListItem>
+            ))}
+          </List>
+          <TextField
+            fullWidth
+            label="Add a comment"
+            value={newComment}
+            onChange={(e) => setNewComment(e.target.value)}
+            sx={{ mt: 2 }}
+          />
+          <Button
+            onClick={() => {
+              handleAddComment();
+              setSelectedPhotoComments((prevComments) => [
+                ...prevComments,
+                { KomentarID: Date.now(), IsiKomentar: newComment, User: { NamaLengkap: "You" } },
+              ]);
+              setNewComment("");
+            }}
+            variant="contained"
+            sx={{ mt: 1, backgroundColor: bluegray[700], '&:hover': { backgroundColor: bluegray[500] } }}
+          >
+            Submit
+          </Button>
+        </DialogContent>
+      </Dialog>
+
 
       {/* Dialog for Uploading Photo */}
       <Dialog open={openUploadDialog} onClose={handleCloseUploadDialog}>
