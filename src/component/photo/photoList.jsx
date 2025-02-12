@@ -10,7 +10,7 @@ import { bluegray } from '../../themes/color';
 import Swal from 'sweetalert2';
 import { deletePhoto } from '../../store/endpoint/photo/deletePhoto';
 import { addCommentToPhoto, getCommentsByPhoto, deleteComment } from '../../store/endpoint/komentar/komentar';
-import { DeleteOutline, Favorite, FavoriteBorderOutlined } from '@mui/icons-material';
+import { Favorite, FavoriteBorderOutlined } from '@mui/icons-material';
 import { likePhoto, getLikesByPhoto } from '../../store/endpoint/likes/likes';
 import { useLike } from "../../context/likeContext";
 
@@ -200,7 +200,7 @@ const PhotoList = () => {
       <Grid container spacing={3}>
         {photos.map((photo) => (
           <Grid item xs={12} sm={6} md={4} key={photo.FotoID}>
-            <Card sx={{ width: 200, height: 200, cursor: 'pointer' }} onClick={() => setSelectedPhoto(photo)}>
+            <Card sx={{ width: 250, height: 250, cursor: 'pointer' }} onClick={() => setSelectedPhoto(photo)}>
               <CardMedia
                 component="img"
                 image={photo.LokasiFile}

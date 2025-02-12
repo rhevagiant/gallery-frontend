@@ -1,8 +1,9 @@
 import { Box, Toolbar, Typography, Grid, Paper } from '@mui/material';
-
-
+import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
+
   return (
     <Box sx={{ display: 'flex' }}>
       {/* Main content */}
@@ -61,8 +62,11 @@ const Dashboard = () => {
                 height: 150,
                 justifyContent: 'center',
                 alignItems: 'center',
+                cursor: 'pointer', // Menjadikan card seperti tombol
+                '&:hover': { bgcolor: 'grey.200' }, // Efek hover
               }}
               elevation={3}
+              onClick={() => navigate('/allLiked')} // Navigasi ke /allLikes saat diklik
             >
               <Typography variant="h6">Likes</Typography>
               <Typography>View your liked photos</Typography>

@@ -9,10 +9,11 @@ import Sidebar from "./component/sidebar/sidebar";
 import AlbumList from "./component/album/albumList";
 import PhotoList from "./component/photo/photoList";
 import AlbumDetail from "./component/album/albumDetail";
+import LikedPhotos from "./component/photo/allLikedPhotos";
 
 const AppContent = () => {
   const location = useLocation();
-  const sidebarRoutes = ["/", "/albums", "/photos"]; // Rute dengan sidebar
+  const sidebarRoutes = ["/", "/albums", "/photos", "/allLiked"]; // Rute dengan sidebar
 
   return (
     <div style={{ display: 'flex', flexGrow: 1 }}>
@@ -26,6 +27,7 @@ const AppContent = () => {
           <Route path="/albums" element={<ProtectedRoute><AlbumList /></ProtectedRoute>} />
           <Route path="/photos" element={<ProtectedRoute><PhotoList /></ProtectedRoute>} />
           <Route path="/album/:id" element={<ProtectedRoute><AlbumDetail /></ProtectedRoute>} />
+          <Route path="/allLiked" element={<ProtectedRoute><LikedPhotos/></ProtectedRoute>}/>
         </Routes>
       </main>
     </div>

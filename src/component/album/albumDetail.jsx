@@ -331,8 +331,8 @@ const AlbumDetail = () => {
             <Grid item xs={6} sm={4} md={3} key={foto.FotoID}>
               <Card
                 sx={{
-                  width: 200,
-                  height: 200,
+                  width: 250,
+                  height: 250,
                   cursor: 'pointer',
                   overflow: 'hidden',
                 }}
