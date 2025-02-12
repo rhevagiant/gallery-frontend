@@ -4,6 +4,7 @@ import Login from "./component/auth/login/loginPage";
 import Register from "./component/auth/register/registerPage";
 import ProtectedRoute from "./store/middleware/protectedRoute";
 import AuthProvider from './context/authContext';
+import { LikeProvider } from './context/likeContext'; // Import LikeProvider
 import Sidebar from "./component/sidebar/sidebar";
 import AlbumList from "./component/album/albumList";
 import PhotoList from "./component/photo/photoList";
@@ -34,9 +35,11 @@ const AppContent = () => {
 const App = () => {
   return (
     <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
+      <LikeProvider> {/* Bungkus dengan LikeProvider */}
+        <Router>
+          <AppContent />
+        </Router>
+      </LikeProvider>
     </AuthProvider>
   );
 };

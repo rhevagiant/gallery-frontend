@@ -21,6 +21,7 @@ import Swal from 'sweetalert2';
 import { addCommentToPhoto, deleteComment, getCommentsByPhoto } from '../../store/endpoint/komentar/komentar';
 import { likePhoto } from '../../store/endpoint/likes/likes';
 import { Favorite, FavoriteBorderOutlined } from '@mui/icons-material';
+import { useLike } from '../../context/likeContext';
 
 const AlbumDetail = () => {
   const { id } = useParams();
@@ -47,8 +48,7 @@ const AlbumDetail = () => {
   const [newComment, setNewComment] = useState('');
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [selectedPhotoComments, setSelectedPhotoComments] = useState([]);
-  const [likedPhotos, setLikedPhotos] = useState({});
-  const [likeCounts, setLikeCounts] = useState({});
+  const { likedPhotos, likeCounts, toggleLike } = useLike();
 
   useEffect(() => {
     const fetchAlbumDetail = async () => {
@@ -280,18 +280,9 @@ const AlbumDetail = () => {
   const handleLikePhoto = async (fotoID) => {
     try {
       await likePhoto(fotoID);
-      setLikedPhotos((prev) => ({
-        ...prev,
-        [fotoID]: !prev[fotoID],
-      }));
-
-      // Langsung update state tanpa perlu request lagi ke API
-      setLikeCounts((prev) => ({
-        ...prev,
-        [fotoID]: (prev[fotoID] || 0) + (likedPhotos[fotoID] ? -1 : 1),
-      }));
+      toggleLike(fotoID);
     } catch (error) {
-      console.error('Error liking photo:', error);
+      console.error("Error liking photo:", error);
     }
   };
 

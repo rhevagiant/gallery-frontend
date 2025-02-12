@@ -12,6 +12,7 @@ import { deletePhoto } from '../../store/endpoint/photo/deletePhoto';
 import { addCommentToPhoto, getCommentsByPhoto, deleteComment } from '../../store/endpoint/komentar/komentar';
 import { DeleteOutline, Favorite, FavoriteBorderOutlined } from '@mui/icons-material';
 import { likePhoto, getLikesByPhoto } from '../../store/endpoint/likes/likes';
+import { useLike } from "../../context/likeContext";
 
 
 const PhotoList = () => {
@@ -27,8 +28,8 @@ const PhotoList = () => {
   const [newComment, setNewComment] = useState('');
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [selectedPhotoComments, setSelectedPhotoComments] = useState([]);
-  const [likedPhotos, setLikedPhotos] = useState({});
-  const [likeCounts, setLikeCounts] = useState({});
+  const { likedPhotos, likeCounts, toggleLike } = useLike();
+
 
 
   useEffect(() => {
@@ -170,20 +171,12 @@ const PhotoList = () => {
   const handleLikePhoto = async (fotoID) => {
     try {
       await likePhoto(fotoID);
-      setLikedPhotos((prev) => ({
-        ...prev,
-        [fotoID]: !prev[fotoID],
-      }));
-
-      // Langsung update state tanpa perlu request lagi ke API
-      setLikeCounts((prev) => ({
-        ...prev,
-        [fotoID]: (prev[fotoID] || 0) + (likedPhotos[fotoID] ? -1 : 1),
-      }));
+      toggleLike(fotoID); // Gunakan fungsi dari Context API
     } catch (error) {
-      console.error('Error liking photo:', error);
+      console.error("Error liking photo:", error);
     }
   };
+  
 
 
   return (
