@@ -8,6 +8,7 @@ const Register = () => {
     username: "",
     password: "",
     email: "",
+    namaLengkap: "",
   });
   const [error, setError] = useState("");
   const navigate = useNavigate();
@@ -17,45 +18,48 @@ const Register = () => {
     try {
       await register(userData);
       navigate("/login");
-    } catch {
-      setError("Registration failed. Please try again.");
+    } catch (err) {
+      setError(err.response?.data?.error || "Registration failed. Please try again.");
     }
   };
 
   return (
     <Box sx={{ width: "300px", margin: "50px auto", textAlign: "center" }}>
-      <Typography variant='h4' gutterBottom>
+      <Typography variant="h4" gutterBottom>
         Register
       </Typography>
-      {error && <Typography color='error'>{error}</Typography>}
+      {error && <Typography color="error">{error}</Typography>}
       <form onSubmit={handleSubmit}>
         <TextField
-          label='Username'
+          label="Username"
           fullWidth
-          margin='normal'
+          margin="normal"
           value={userData.username}
-          onChange={(e) =>
-            setUserData({ ...userData, username: e.target.value })
-          }
+          onChange={(e) => setUserData({ ...userData, username: e.target.value })}
         />
         <TextField
-          label='Email'
+          label="Email"
           fullWidth
-          margin='normal'
+          margin="normal"
           value={userData.email}
           onChange={(e) => setUserData({ ...userData, email: e.target.value })}
         />
         <TextField
-          label='Password'
-          type='password'
+          label="Full Name"
           fullWidth
-          margin='normal'
-          value={userData.password}
-          onChange={(e) =>
-            setUserData({ ...userData, password: e.target.value })
-          }
+          margin="normal"
+          value={userData.namaLengkap}
+          onChange={(e) => setUserData({ ...userData, namaLengkap: e.target.value })}
         />
-        <Button variant='contained' type='submit' fullWidth>
+        <TextField
+          label="Password"
+          type="password"
+          fullWidth
+          margin="normal"
+          value={userData.password}
+          onChange={(e) => setUserData({ ...userData, password: e.target.value })}
+        />
+        <Button variant="contained" type="submit" fullWidth>
           Register
         </Button>
       </form>

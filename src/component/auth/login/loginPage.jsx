@@ -3,6 +3,7 @@ import { login } from "../../../store/endpoint/auth/authentication";
 import { AuthContext } from "../../../context/authContext";
 import { useNavigate } from "react-router-dom";
 import { Box, TextField, Button, Typography } from "@mui/material";
+import { Link } from "react-router-dom";
 
 const Login = () => {
   const [credentials, setCredentials] = useState({
@@ -55,6 +56,9 @@ const Login = () => {
           Login
         </Button>
       </form>
+      <Typography variant='body2' sx={{ marginTop: 2 }}>
+        Don`t have an account? <Link to="/register">Register here</Link>
+      </Typography>
     </Box>
   );
 };
