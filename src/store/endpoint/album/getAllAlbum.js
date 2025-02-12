@@ -20,5 +20,15 @@ export const getAlbumByID = async (AlbumID) => {
     }
 };
 
+export const getUserAlbums = async () => {
+    try {
+        const response = await api.get('/album/albumByUserID');
+        return response.data.data; // Mengembalikan data album saja
+    } catch (error) {
+        console.error('Error fetching user albums:', error);
+        throw error;
+    }
+};
 
-export default { getAllAlbums, getAlbumByID };
+
+export default { getAllAlbums, getAlbumByID, getUserAlbums };

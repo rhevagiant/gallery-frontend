@@ -5,7 +5,7 @@ import {
   TextField, DialogActions
 } from '@mui/material';
 import { Link } from 'react-router-dom';
-import { getAllAlbums } from '../../store/endpoint/album/getAllAlbum';
+import { getUserAlbums } from '../../store/endpoint/album/getAllAlbum';
 import { createAlbum } from '../../store/endpoint/album/createAlbum';
 import { bluegray } from '../../themes/color';
 
@@ -20,7 +20,7 @@ const AlbumList = () => {
 
   const fetchAlbums = async () => {
     try {
-      const data = await getAllAlbums();
+      const data = await getUserAlbums();
       setAlbums(data);
     } catch (error) {
       console.error('Gagal mengambil album:', error);
