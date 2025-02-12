@@ -57,8 +57,9 @@ const Login = () => {
         </Button>
       </form>
       <Typography variant='body2' sx={{ marginTop: 2 }}>
-        Don`t have an account? <Link to="/register">Register here</Link>
+        Don`t` have an account? <Link  to="/register" style={{ color: 'blue', textDecoration: 'none', cursor: 'pointer' }}>Register here</Link>
       </Typography>
+
     </Box>
   );
 };

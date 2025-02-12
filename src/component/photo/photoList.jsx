@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Box, Typography, Card, CardMedia, Grid, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, List, ListItem, IconButton, ListItemText } from '@mui/material';
 import { getAllPhotos } from '../../store/endpoint/photo/AllPhoto';
-import { getAllAlbums } from '../../store/endpoint/album/getAllAlbum';
+import { getUserAlbums } from '../../store/endpoint/album/getAllAlbum';
 import { uploadPhoto } from '../../store/endpoint/photo/uploadPhoto';
 import { useDropzone } from 'react-dropzone';
 import AddPhotoIcon from '@mui/icons-material/AddPhotoAlternate';
@@ -55,7 +55,7 @@ const PhotoList = () => {
   useEffect(() => {
     const fetchAlbums = async () => {
       try {
-        const data = await getAllAlbums();
+        const data = await getUserAlbums();
         setAlbums(data);
         if (data.length > 0) {
           setSelectedAlbum(data[0].AlbumID);

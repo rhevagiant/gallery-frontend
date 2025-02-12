@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { register } from "../../../store/endpoint/auth/authentication";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Box, TextField, Button, Typography } from "@mui/material";
 
 const Register = () => {
@@ -63,6 +63,10 @@ const Register = () => {
           Register
         </Button>
       </form>
+      <Typography variant='body2' sx={{ marginTop: 2 }}>
+        Already have an account? <Link  to="/login" style={{ color: 'blue', textDecoration: 'none', cursor: 'pointer' }}>Login here</Link>
+      </Typography>
+
     </Box>
   );
 };
