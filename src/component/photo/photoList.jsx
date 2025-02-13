@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Card, CardMedia, Grid, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, List, ListItem, IconButton, ListItemText } from '@mui/material';
+import { Box, Typography, Card, CardMedia, Grid, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, MenuItem, List, ListItem, IconButton, ListItemText, Select } from '@mui/material';
 import { getAllPhotos } from '../../store/endpoint/photo/AllPhoto';
 import { getUserAlbums } from '../../store/endpoint/album/getAllAlbum';
 import { uploadPhoto } from '../../store/endpoint/photo/uploadPhoto';
@@ -13,6 +13,8 @@ import { addCommentToPhoto, getCommentsByPhoto, deleteComment } from '../../stor
 import { Favorite, FavoriteBorderOutlined } from '@mui/icons-material';
 import { likePhoto, getLikesByPhoto } from '../../store/endpoint/likes/likes';
 import { useLike } from "../../context/likeContext";
+import { movePhotoToAlbum } from '../../store/endpoint/photo/moveAlbum';
+import CommentIcon from '@mui/icons-material/Comment';
 
 
 const PhotoList = () => {
@@ -24,11 +26,10 @@ const PhotoList = () => {
   const [albums, setAlbums] = useState([]);
   const [selectedAlbum, setSelectedAlbum] = useState('');
   const [selectedPhoto, setSelectedPhoto] = useState(null);
-  const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [commentDialogOpen, setCommentDialogOpen] = useState(false);
   const [selectedPhotoComments, setSelectedPhotoComments] = useState([]);
-  const { likedPhotos, likeCounts, toggleLike } = useLike();
+  const { likedPhotos, likeCounts, toggleLike, setLikeCounts } = useLike();
 
 
 
@@ -176,7 +177,16 @@ const PhotoList = () => {
       console.error("Error liking photo:", error);
     }
   };
-  
+
+  const handleMovePhoto = async (fotoID) => {
+    try {
+      await movePhotoToAlbum(fotoID, selectedAlbum);
+      alert('Photo moved successfully');
+    } catch (error) {
+      alert('Failed to move photo');
+    }
+  };
+
 
 
   return (
@@ -242,9 +252,26 @@ const PhotoList = () => {
                     {likeCounts[selectedPhoto.FotoID] || 0} Likes
                   </Typography>
                 </Box>
-                <Button onClick={() => openCommentDialog(selectedPhoto)} sx={{ mt: 2 }} variant="outlined">
-                  View & Add Comments
-                </Button>
+                <Box sx={{ mt: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <IconButton onClick={() => openCommentDialog(selectedPhoto)} sx={{ p: 1 }}>
+                    <CommentIcon />
+                  </IconButton>
+                  <Select
+                    value={selectedAlbum}
+                    onChange={(e) => setSelectedAlbum(e.target.value)}
+                    size="small"
+                    sx={{ minWidth: 120 }}
+                  >
+                    {albums.map((album) => (
+                      <MenuItem key={album.AlbumID} value={album.AlbumID}>
+                        {album.NamaAlbum}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                  <Button onClick={() => handleMovePhoto(selectedPhoto.FotoID)} variant="contained" size="small">
+                    Move
+                  </Button>
+                </Box>
               </Grid>
             </Grid>
           </DialogContent>

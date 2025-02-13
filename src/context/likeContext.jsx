@@ -19,7 +19,7 @@ export const LikeProvider = ({ children }) => {
   };
 
   return (
-    <LikeContext.Provider value={{ likedPhotos, likeCounts, toggleLike }}>
+    <LikeContext.Provider value={{ likedPhotos, likeCounts, setLikeCounts, toggleLike }}>
       {children}
     </LikeContext.Provider>
   );
